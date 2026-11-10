@@ -1,46 +1,58 @@
-### Asset Maintenence
+# Asset Maintenance Requests
 
-Employees can post requests for asset maintenence
+Asset Maintenance Requests gives employees and the maintenance team one place to report asset problems and follow the work through to a decision. Employees submit requests against assets; maintenance workers review the shared queue, take ownership, and record the outcome.
 
-### Maintenance request workspace
+## Open the maintenance request page
 
-After installing or migrating the app, open **`/maintenance-requests`**. This is a website page and asks guests to sign in before viewing or submitting requests. Assign the **Maintenance User** role to employees who submit requests and the **Maintenance Worker** role to the maintenance team. Each employee's Frappe User account must be linked in the Employee record's **User ID** field and the Employee record must be Active.
+Sign in to your Frappe site and visit **`/maintenance-requests`**. You must be signed in to view or submit requests.
 
-Employees can create requests, view and filter their own requests, edit open requests, and cancel open requests. Maintenance workers can filter the shared queue, accept open requests, and complete or reject in-progress work with feedback. Access is checked on the server as well as in the page.
+The page shows requests in a list. Use the status, priority, and date filters to narrow the list, then select **Filter**. Employees see their own requests. Maintenance workers see the shared queue and can choose to hide completed and rejected requests.
 
-### Installation
+## Employee guide
 
-You can install this app using the [bench](https://github.com/frappe/bench) CLI:
+### Submit a request
 
-```bash
-cd $PATH_TO_YOUR_BENCH
-bench get-app $URL_OF_THIS_REPO --branch version-16
-bench install-app asset_maintenence
-```
+1. Open **`/maintenance-requests`** and select **New request**.
+2. Choose the asset, set a priority, and describe the issue clearly.
+3. Select **Submit request**.
 
-### Contributing
+The request is dated automatically and starts with **Open** status. Choose the priority that best reflects the urgency: Low, Medium, High, or Urgent.
 
-This app uses `pre-commit` for code formatting and linting. Please [install pre-commit](https://pre-commit.com/#installation) and enable it for this repository:
+### Follow up, edit, or cancel
 
-```bash
-cd apps/asset_maintenence
-pre-commit install
-```
+Your requests appear on the page with their current status, assigned worker (when accepted), and any feedback from the maintenance team. You can edit or cancel a request while it is **Open**. Once a worker accepts it, the request can no longer be edited or cancelled by the employee.
 
-Pre-commit is configured to use the following tools for checking and formatting your code:
+## Maintenance team guide
 
-- ruff
-- eslint
-- prettier
-- pyupgrade
-### CI
+The maintenance queue shows requests from all employees. Open a request card to review its asset, description, priority, and request date.
 
-This app can use GitHub Actions for CI. The following workflows are configured:
+- Select **Accept** on an **Open** request to take it into **In Progress**. The accepting worker is shown as the assignee.
+- For an **In Progress** request, select **Complete** or **Reject** and provide feedback for the employee.
+- Completed and rejected requests are closed. They cannot be reopened through this page.
 
-- CI: Installs this app and runs unit tests on every push to `develop` branch.
-- Linters: Runs [Frappe Semgrep Rules](https://github.com/frappe/semgrep-rules) and [pip-audit](https://pypi.org/project/pip-audit/) on every pull request.
+## Request statuses
 
+| Status | Meaning |
+| --- | --- |
+| **Open** | Submitted and waiting for a maintenance worker. |
+| **In Progress** | Accepted by a worker and being handled. |
+| **Completed** | Work is complete; the worker has recorded feedback. |
+| **Rejected** | The request was not accepted for work; the worker has recorded feedback. |
+| **Cancelled** | The employee cancelled the request while it was still open. |
 
-### License
+The normal flow is **Open → In Progress → Completed** or **Open → In Progress → Rejected**. An employee may cancel an **Open** request.
 
-mit
+## Access and account setup
+
+Ask your Frappe administrator if you cannot access the page or submit a request. The administrator needs to:
+
+- Assign the **Maintenance User** role to employees who submit requests.
+- Assign the **Maintenance Worker** role to maintenance team members who manage the queue.
+- Link each employee's Frappe user account to their Employee record using **User ID**, and ensure the Employee record is **Active**.
+- Ensure assets are available and active for selection in the request form.
+
+Employees can see only requests linked to their own Employee record. Maintenance workers can see and manage the shared queue. System Managers can also manage requests.
+
+## What to include in a request
+
+Select the affected asset and describe the problem with enough detail to help the maintenance team assess it. Include symptoms, when the issue began, and any relevant context. Do not include information unrelated to the asset or repair.
