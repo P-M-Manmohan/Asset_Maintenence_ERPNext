@@ -1,0 +1,96 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Maintenance Requests{% endblock %}
+
+{% block page_content %}
+<main class="container maintenance-portal" data-authenticated="{{ 1 if logged_in else 0 }}" data-can-manage="{{ 1 if can_manage_requests else 0 }}">
+	<div class="portal-header">
+		<div class="portal-title">
+			<div class="portal-mark" aria-hidden="true"><span>✦</span></div>
+			<div><p class="portal-eyebrow">ASSET CARE</p>
+				<h1>Maintenance Requests</h1>
+				<p class="portal-subtitle">Submit an issue or follow the progress of your asset maintenance request.</p></div>
+		</div>
+		{% if logged_in and not can_manage_requests %}
+		<button class="btn btn-primary" id="new-request">New request</button>
+		{% endif %}
+	</div>
+	{% if not logged_in %}
+	<div class="alert alert-info">Please <a href="/login?redirect-to=/maintenance-requests">sign in</a> with your employee account to view or submit maintenance requests.</div>
+	{% else %}
+		{% if can_manage_requests %}
+		<h3>Maintenance queue</h3>
+		{% endif %}
+		<div class="request-filters">
+			<select class="form-control" id="status-filter"><option value="">All statuses</option><option>Open</option><option>In Progress</option><option>Completed</option><option>Rejected</option><option>Cancelled</option></select>
+			<select class="form-control" id="priority-filter"><option value="">All priorities</option><option>Low</option><option>Medium</option><option>High</option><option>Urgent</option></select>
+			<label>From <input class="form-control" type="date" id="from-filter"></label>
+			<label>To <input class="form-control" type="date" id="to-filter"></label>
+			{% if can_manage_requests %}<button class="btn btn-default closed-toggle" id="toggle-closed-requests" type="button">Hide completed &amp; rejected</button>{% endif %}
+			<button class="btn btn-default" id="filter-requests">Filter</button>
+		</div>
+		<div id="request-list" aria-live="polite"></div>
+		<div class="modal fade" id="request-modal" tabindex="-1" role="dialog" aria-labelledby="request-modal-title">
+			<div class="modal-dialog" role="document"><div class="modal-content">
+				<div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title" id="request-modal-title">New maintenance request</h4></div>
+				<div class="modal-body">
+					<div class="form-group"><label for="request-asset">Asset</label><select class="form-control" id="request-asset" required></select></div>
+					<div class="form-group"><label for="request-priority">Priority</label><select class="form-control" id="request-priority"><option>Low</option><option selected>Medium</option><option>High</option><option>Urgent</option></select></div>
+					<div class="form-group"><label for="request-description">Issue description</label><textarea class="form-control" id="request-description" rows="4" required></textarea></div>
+				</div>
+				<div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button><button type="button" class="btn btn-primary" id="save-request">Submit request</button></div>
+			</div></div>
+		</div>
+	{% endif %}
+</main>
+{% endblock %}
+
+{% block style %}
+<style>
+.maintenance-portal { --portal-ink:#17324d; --portal-blue:#1769aa; --portal-line:#dbe7ee; padding-top:28px; padding-bottom:48px; color:var(--portal-ink); }
+.portal-header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:28px; padding:28px 30px; border:1px solid #dcecf3; border-radius:16px; background:linear-gradient(115deg,#eaf5ff 0%,#f2fbf8 58%,#fff5e9 100%); }
+.portal-title { display:flex; align-items:center; gap:18px; }
+.portal-mark { display:grid; place-items:center; flex:0 0 56px; width:56px; height:56px; border-radius:16px; background:linear-gradient(145deg,#1769aa,#29a58b); color:#fff; font-size:26px; box-shadow:0 8px 20px #1769aa30; }
+.portal-eyebrow { margin:0 0 4px; color:#23816f; font-size:11px; font-weight:800; letter-spacing:.14em; }
+.portal-header h1 { margin:0 0 6px; color:#17324d; font-size:30px; font-weight:750; }
+.portal-subtitle { margin:0; color:#5e7283; }
+.portal-header .btn-primary { border:0; border-radius:9px; padding:10px 17px; background:#1769aa; box-shadow:0 5px 12px #1769aa28; }
+.portal-header .btn-primary:hover { background:#10588f; }
+.request-filters { display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap; margin:0 0 20px; padding:16px; border:1px solid var(--portal-line); border-radius:12px; background:#f7fafc; }
+.request-filters > select { width:170px; }
+.request-filters label { margin:0; color:#536b7d; font-size:12px; font-weight:700; }
+.request-filters label input { min-width:150px; margin-top:5px; }
+.request-filters .form-control { height:38px; border-color:#d5e1e8; border-radius:8px; box-shadow:none; }
+.request-filters .form-control:focus { border-color:#54a9cb; box-shadow:0 0 0 3px #54a9cb22; }
+#filter-requests { height:38px; border-color:#c4d9e5; border-radius:8px; color:#1769aa; font-weight:650; background:#fff; }
+.closed-toggle { height:38px; border-color:#e8caca; border-radius:8px; color:#a33a43; font-weight:650; background:#fff7f6; }
+.closed-toggle:hover { border-color:#d9a6a8; color:#8e2c35; background:#fff0ef; }
+.request-card { position:relative; overflow:hidden; border:1px solid var(--portal-line); border-radius:12px; padding:18px 20px; margin:12px 0; background:#fff; box-shadow:0 3px 12px #183d5710; transition:transform .15s ease,box-shadow .15s ease; }
+.request-card:hover { transform:translateY(-1px); box-shadow:0 8px 22px #183d5718; }
+.request-card:before { position:absolute; inset:0 auto 0 0; width:4px; content:""; background:#5b9fc5; }
+.request-card.priority-urgent:before { background:#dc4b52; }
+.request-card.priority-high:before { background:#e58b35; }
+.request-card.priority-medium:before { background:#4289c4; }
+.request-card.priority-low:before { background:#50a88a; }
+.request-card-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.request-card-head strong { color:#17324d; font-size:15px; }
+.request-card-actions { display:flex; gap:7px; }
+.request-card-actions .btn { border-radius:7px; }
+.request-card-actions .btn-primary { border-color:#1769aa; background:#1769aa; }
+.request-card p { color:#354e63; line-height:1.55; }
+.request-meta { color:#718394; margin-top:10px; font-size:12px; }
+.request-status,.request-priority { display:inline-block; border-radius:20px; padding:4px 10px; font-size:11px; font-weight:750; vertical-align:middle; }
+.request-status { margin-left:8px; background:#edf2f7; color:#526476; }
+.status-open { color:#986018; background:#fff4db; }
+.status-in-progress { color:#135f9a; background:#e3f2ff; }
+.status-completed { color:#1a785b; background:#e4f7ef; }
+.status-rejected,.status-cancelled { color:#a33a43; background:#fff0ef; }
+.request-priority { margin-left:6px; color:#5e7181; background:#f0f4f6; }
+.request-priority.priority-urgent { color:#a8343d; background:#fff0ef; }
+.request-priority.priority-high { color:#9b5b17; background:#fff2df; }
+.request-priority.priority-medium { color:#285f91; background:#eaf4fc; }
+.request-priority.priority-low { color:#28765c; background:#e8f6ef; }
+.request-feedback { margin-top:12px; padding:10px 12px; border-left:3px solid #36a184; border-radius:8px; background:#f0faf6; color:#315e52; }
+@media(max-width:600px) { .portal-header { align-items:flex-start; flex-direction:column; padding:22px; } .portal-title { align-items:flex-start; } .portal-header h1 { font-size:24px; } .request-filters > select, .request-filters label, .request-filters label input { width:100%; } }
+</style>
+{% endblock %}

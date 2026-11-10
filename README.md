@@ -2,6 +2,12 @@
 
 Employees can post requests for asset maintenence
 
+### Maintenance request workspace
+
+After installing or migrating the app, open **`/maintenance-requests`**. This is a website page and asks guests to sign in before viewing or submitting requests. Assign the **Maintenance User** role to employees who submit requests and the **Maintenance Worker** role to the maintenance team. Each employee's Frappe User account must be linked in the Employee record's **User ID** field and the Employee record must be Active.
+
+Employees can create requests, view and filter their own requests, edit open requests, and cancel open requests. Maintenance workers can filter the shared queue, accept open requests, and complete or reject in-progress work with feedback. Access is checked on the server as well as in the page.
+
 ### Installation
 
 You can install this app using the [bench](https://github.com/frappe/bench) CLI:

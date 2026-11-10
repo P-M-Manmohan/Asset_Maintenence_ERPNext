@@ -5,6 +5,21 @@ app_description = "Employees can post requests for asset maintenence"
 app_email = "manmohanpm65@gmail.com"
 app_license = "mit"
 
+before_install = "asset_maintenence.setup.create_roles"
+before_migrate = "asset_maintenence.setup.create_roles"
+
+permission_query_conditions = {
+	"Asset Maintenence": "asset_maintenence.api.get_request_query_conditions",
+}
+
+has_permission = {
+	"Asset Maintenence": "asset_maintenence.api.has_request_permission",
+}
+
+website_route_rules = [
+	{"from_route": "/maintenance-requests", "to_route": "maintenance_requests"},
+]
+
 # Apps
 # ------------------
 
